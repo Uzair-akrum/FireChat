@@ -6,7 +6,7 @@ export const maxDuration = 60;
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { postId: string } }
+  { params }: { params: { postId: any } }
 ) {
   try {
     const postId = params.postId;
