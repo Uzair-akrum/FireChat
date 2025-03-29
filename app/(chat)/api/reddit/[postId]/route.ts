@@ -5,10 +5,10 @@ export const maxDuration = 60;
 
 export async function GET(
   request: Request,
-  { params }: { params: { postId: string } }
+  context: { params: { postId: string } }
 ) {
   try {
-    const postId = params.postId;
+    const postId = context.params.postId;
 
     if (!postId) {
       return NextResponse.json(
@@ -28,7 +28,7 @@ export async function GET(
 
     return NextResponse.json({ post });
   } catch (error: any) {
-    console.error(`Error retrieving Reddit post ${params.postId}:`, error);
+    console.error(`Error retrieving Reddit post ${context.params.postId}:`, error);
 
     return NextResponse.json(
       { error: 'Failed to retrieve Reddit post', message: error.message },
