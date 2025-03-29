@@ -4,7 +4,7 @@ import type { ChatRequestOptions, Message } from 'ai';
 import cx from 'classnames';
 import equal from 'fast-deep-equal';
 import { AnimatePresence, motion } from 'framer-motion';
-import { memo, useState } from 'react';
+import { memo, useMemo, useState } from 'react';
 
 import { cn } from '@/lib/utils';
 import { PencilEditIcon, SparklesIcon } from './icons';
@@ -15,13 +15,7 @@ import { Button } from './ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { Weather } from './weather';
 
-const PurePreviewMessage = ({
-  chatId,
-  message,
-  isLoading,
-  setMessages,
-  reload,
-}: {
+interface PreviewMessageProps {
   chatId: string;
   message: Message;
   isLoading: boolean;
@@ -31,8 +25,53 @@ const PurePreviewMessage = ({
   reload: (
     chatRequestOptions?: ChatRequestOptions,
   ) => Promise<string | null | undefined>;
-}) => {
+  allMessages: Message[];
+  messageIndex: number;
+}
+
+function processMessageContent(content: string, allMessages: Message[], currentIndex: number): string {
+  if (!content) return '';
+
+  const seenLinks = new Set<string>();
+
+  // First gather all links that appeared before this message
+  allMessages.slice(0, currentIndex).forEach(msg => {
+    if (msg.role === 'assistant' && msg.content) {
+      const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+      const matches = [...msg.content.matchAll(linkRegex)];
+      matches.forEach(match => {
+        seenLinks.add(match[2]); // Add the URL to seen links
+      });
+    }
+  });
+
+  // Now process current message content, removing duplicate links
+  return content.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, text, url) => {
+    if (seenLinks.has(url)) {
+      return text; // Just return the text without the link if we've seen this URL before
+    }
+    seenLinks.add(url);
+    return match; // Keep the full markdown link if it's the first time we see this URL
+  });
+}
+
+const PurePreviewMessage = ({
+  chatId,
+  message,
+  isLoading,
+  setMessages,
+  reload,
+  allMessages,
+  messageIndex,
+}: PreviewMessageProps) => {
   const [mode, setMode] = useState<'view' | 'edit'>('view');
+
+  const processedContent = useMemo(() => {
+    if (message.role === 'assistant') {
+      return processMessageContent(message.content, allMessages, messageIndex);
+    }
+    return message.content;
+  }, [message.content, message.role, allMessages, messageIndex]);
 
   return (
     <AnimatePresence>
@@ -85,7 +124,7 @@ const PurePreviewMessage = ({
                       message.role === 'user',
                   })}
                 >
-                  <Markdown>{message.content}</Markdown>
+                  <Markdown>{processedContent}</Markdown>
                 </div>
               </div>
             )}
@@ -161,6 +200,8 @@ export const PreviewMessage = memo(
       )
     )
       return false;
+    if (prevProps.messageIndex !== nextProps.messageIndex) return false;
+    if (!equal(prevProps.allMessages, nextProps.allMessages)) return false;
 
     return true;
   },

@@ -43,6 +43,8 @@ function PureMessages({
           isLoading={isLoading && messages.length - 1 === index}
           setMessages={setMessages}
           reload={reload}
+          allMessages={messages}
+          messageIndex={index}
         />
       ))}
 
