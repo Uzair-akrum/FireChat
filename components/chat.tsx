@@ -419,7 +419,11 @@ export function Chat({
 
       {messages.length === 0 ? (
         <div className="flex-1 overflow-y-auto">
-          <SuggestedQuestions setInput={setInput} handleSubmit={handleSubmit} />
+          <SuggestedQuestions
+            setInput={setInput}
+            handleSubmit={handleSubmit}
+            input={input}
+          />
         </div>
       ) : (
         <Messages

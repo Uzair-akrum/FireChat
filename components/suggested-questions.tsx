@@ -3,6 +3,7 @@ import { Message } from 'ai';
 interface SuggestedQuestionsProps {
   setInput: (input: string) => void;
   handleSubmit: (event?: { preventDefault?: () => void }) => void;
+  input: string;
 }
 
 const questions = [
@@ -13,25 +14,29 @@ const questions = [
   "How can I minimize taxes on my investments in Pakistan?"
 ];
 
-export function SuggestedQuestions({ setInput, handleSubmit }: SuggestedQuestionsProps) {
+export function SuggestedQuestions({ setInput, handleSubmit, input }: SuggestedQuestionsProps) {
   const handleQuestionClick = (question: string) => {
     setInput(question);
-    handleSubmit();
   };
 
   return (
-    <div className="flex flex-col gap-2 px-4 py-4">
-      <h2 className="text-lg font-semibold mb-2">Suggested Questions</h2>
-      <div className="flex flex-col gap-2">
-        {questions.map((question, index) => (
-          <button
-            key={index}
-            className="text-left px-4 py-2 rounded-lg hover:bg-muted transition-colors duration-200"
-            onClick={() => handleQuestionClick(question)}
-          >
-            {question}
-          </button>
-        ))}
+    <div className="flex flex-col items-center justify-center h-full max-w-2xl mx-auto px-4">
+      <div className="w-full max-w-lg space-y-4">
+        <h2 className="text-xl font-semibold text-center mb-6">Suggested Questions</h2>
+        <div className="flex flex-col gap-3">
+          {questions.map((question, index) => (
+            <button
+              key={index}
+              className={`w-full text-left px-6 py-3 rounded-xl transition-colors duration-200 text-sm border ${input === question
+                  ? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700'
+                  : 'hover:bg-zinc-100 dark:hover:bg-zinc-800 border-zinc-200 dark:border-zinc-800'
+                }`}
+              onClick={() => handleQuestionClick(question)}
+            >
+              {question}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
