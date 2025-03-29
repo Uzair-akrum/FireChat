@@ -41,6 +41,8 @@ function PureBlockMessages({
           isLoading={isLoading && index === messages.length - 1}
           setMessages={setMessages}
           reload={reload}
+          allMessages={messages}
+          messageIndex={index}
         />
       ))}
 
