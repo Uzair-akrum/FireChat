@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { ChatRequestOptions, CreateMessage } from 'ai';
+import { toast } from 'sonner';
 
 import { ChatHeader } from '@/components/chat-header';
 import { Messages } from './messages';
@@ -47,6 +48,15 @@ function useCustomChat({ id, selectedModelId }: { id: string; selectedModelId: s
           ...chatRequestOptions
         }),
       });
+
+      if (response.status === 429) {
+        const errorData = await response.json();
+        const resetDate = new Date(errorData.reset);
+        const waitMinutes = Math.ceil((resetDate.getTime() - Date.now()) / 60000);
+        toast.error(`Whoops! You've sent too many messages. Please wait ${waitMinutes} minutes and try again.`);
+        setIsLoading(false);
+        return null;
+      }
 
       if (!response.body) throw new Error('No response body');
 
@@ -127,6 +137,15 @@ function useCustomChat({ id, selectedModelId }: { id: string; selectedModelId: s
             }),
           });
 
+          if (response.status === 429) {
+            const errorData = await response.json();
+            const resetDate = new Date(errorData.reset);
+            const waitMinutes = Math.ceil((resetDate.getTime() - Date.now()) / 60000);
+            toast.error(`Whoops! You've sent too many messages. Please wait ${waitMinutes} minutes and try again.`);
+            setIsLoading(false);
+            return null;
+          }
+
           if (!response.body) throw new Error('No response body');
 
           const reader = response.body.getReader();
@@ -206,6 +225,15 @@ function useCustomChat({ id, selectedModelId }: { id: string; selectedModelId: s
               ...chatRequestOptions
             }),
           });
+
+          if (response.status === 429) {
+            const errorData = await response.json();
+            const resetDate = new Date(errorData.reset);
+            const waitMinutes = Math.ceil((resetDate.getTime() - Date.now()) / 60000);
+            toast.error(`Whoops! You've sent too many messages. Please wait ${waitMinutes} minutes and try again.`);
+            setIsLoading(false);
+            return null;
+          }
 
           if (!response.body) throw new Error('No response body');
 
