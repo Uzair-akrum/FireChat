@@ -4,7 +4,7 @@ import path from 'path';
 import { insertRedditPost, RedditPost } from '@/lib/db';
 import { unknown } from 'zod';
 
-export const maxDuration = 300; // Increase timeout for large file processing
+export const maxDuration = 60; // Maximum allowed duration for Vercel hobby plan
 
 export async function POST() {
   try {

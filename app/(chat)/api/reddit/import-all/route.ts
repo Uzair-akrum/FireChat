@@ -3,7 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { insertRedditPost, RedditPost } from '@/lib/db';
 
-export const maxDuration = 300; // Increase timeout for large file processing
+export const maxDuration = 60; // Maximum allowed duration for Vercel hobby plan
 
 export async function POST() {
   try {
