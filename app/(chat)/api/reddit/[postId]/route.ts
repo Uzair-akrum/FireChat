@@ -3,18 +3,20 @@ import type { NextRequest } from 'next/server';
 import { getRedditPostByPostId } from '@/lib/db';
 
 export const maxDuration = 60;
-interface RouteContext {
-  params: {
-    postId: string; // Ensure postId is string here
-  };
+type Props = {
+  params: Promise<{
+    postId: string
+  }>
 }
 
 export async function GET(
   request: NextRequest,
-  context: RouteContext
+  props: Props
 ) {
+  const params = await props.params
+  const postId = params.postId;
   try {
-    const postId = context.params.postId;
+
 
     if (!postId) {
       return NextResponse.json(
@@ -34,7 +36,7 @@ export async function GET(
 
     return NextResponse.json({ post });
   } catch (error: any) {
-    console.error(`Error retrieving Reddit post ${context.params.postId}:`, error);
+    console.error(`Error retrieving Reddit post ${params.postId}:`, error);
 
     return NextResponse.json(
       { error: 'Failed to retrieve Reddit post', message: error.message },
