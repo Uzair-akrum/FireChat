@@ -94,11 +94,20 @@ function PureMultimodalInput({
   }, [input, setLocalStorageInput]);
 
   const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInput(event.target.value);
-    adjustHeight(textareaRef);
+    const value = event.target.value;
+    if (value.length <= 1000) {
+      setInput(value);
+      adjustHeight(textareaRef);
+    } else {
+      toast.error('Message cannot exceed 1000 characters');
+    }
   };
 
   const submitForm = useCallback(() => {
+    if (input.length > 1000) {
+      toast.error('Message cannot exceed 1000 characters');
+      return;
+    }
     window.history.replaceState({}, '', `/chat/${chatId}`);
 
     handleSubmit(undefined);
@@ -109,7 +118,7 @@ function PureMultimodalInput({
     if (width && width > 768) {
       textareaRef.current?.focus();
     }
-  }, [handleSubmit, setLocalStorageInput, width, chatId]);
+  }, [handleSubmit, setLocalStorageInput, width, chatId, input]);
 
   return (
     <div className="relative w-full flex flex-col gap-4">
