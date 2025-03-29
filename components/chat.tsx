@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { ChatHeader } from '@/components/chat-header';
 import { Messages } from './messages';
 import { MultimodalInput } from './multimodal-input';
+import { SuggestedQuestions } from './suggested-questions';
 
 // Define our own Message type that conforms to the expected interface
 interface Message {
@@ -416,13 +417,19 @@ export function Chat({
     <div className="flex flex-col min-w-0 h-dvh bg-background">
       <ChatHeader selectedModelId={selectedModelId} />
 
-      <Messages
-        chatId={id}
-        isLoading={isLoading}
-        messages={messages}
-        setMessages={setMessages}
-        reload={reload}
-      />
+      {messages.length === 0 ? (
+        <div className="flex-1 overflow-y-auto">
+          <SuggestedQuestions setInput={setInput} handleSubmit={handleSubmit} />
+        </div>
+      ) : (
+        <Messages
+          chatId={id}
+          isLoading={isLoading}
+          messages={messages}
+          setMessages={setMessages}
+          reload={reload}
+        />
+      )}
 
       <form className="flex mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full md:max-w-3xl" onSubmit={handleSubmit}>
         <MultimodalInput
