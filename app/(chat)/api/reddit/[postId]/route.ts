@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { getRedditPostByPostId } from '@/lib/db';
 
 export const maxDuration = 60;
 
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { postId: string } }
 ) {
   try {
