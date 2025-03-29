@@ -7,6 +7,8 @@ import { generateUUID, getMostRecentUserMessage } from '@/lib/utils';
 import { createClient } from '@supabase/supabase-js';
 import { generateEmbedding } from '@/lib/ai/embedding';
 import { searchKnowledgeChunks } from '@/lib/db';
+import { ratelimit } from '@/lib/rate-limit';
+import { headers } from 'next/headers';
 
 export const maxDuration = 60;
 
@@ -50,6 +52,32 @@ async function fetchRedditPosts() {
 }
 
 export async function POST(request: Request) {
+  // Get IP for rate limiting
+  const headersList = headers();
+  const forwardedFor = request.headers.get('x-forwarded-for');
+  const ip = forwardedFor?.split(',')[0] || 'anonymous';
+
+  // Check rate limit
+  const { success, limit, remaining, reset } = await ratelimit.limit(ip);
+
+  console.log("🚀 ~ POST ~ success:", success, limit, remaining)
+  if (!success) {
+    return new Response(JSON.stringify({
+      error: 'Too many requests',
+      limit,
+      remaining,
+      reset,
+    }), {
+      status: 429,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-RateLimit-Limit': limit.toString(),
+        'X-RateLimit-Remaining': remaining.toString(),
+        'X-RateLimit-Reset': reset.toString(),
+      }
+    });
+  }
+
   const {
     id,
     messages,
