@@ -143,6 +143,17 @@ export async function POST(request: Request) {
     parts: [{ text: systemPrompt }]
   };
 
+  // Count tokens for the input
+  const inputContent = {
+    contents: [
+      systemInstructionContent,
+      ...formattedHistory,
+      { role: "user", parts: [{ text: lastUserMessage.content }] }
+    ]
+  };
+  const tokenCount = await geminiModel.countTokens(inputContent);
+  console.log("Input token count:", tokenCount.totalTokens);
+
   // Start chat with history and tools
   const chat = geminiModel.startChat({
     history: formattedHistory,
@@ -178,8 +189,10 @@ export async function POST(request: Request) {
           );
         }
 
-        // Check for tool calls
+        // Check for tool calls and log token usage
         const response = await result.response;
+        console.log("Response usage metadata:", response.usageMetadata);
+
         const candidate = response.candidates?.[0];
 
         if (candidate?.content?.parts?.some(part => 'functionCall' in part)) {
