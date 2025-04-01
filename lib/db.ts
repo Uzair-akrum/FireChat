@@ -18,10 +18,11 @@ export const supabase = createClient(supabaseUrl, supabaseKey);
 console.log("🚀 ~ supabase:", supabase)
 
 // Function to insert a reddit post
-export async function insertRedditPost(post: RedditPost) {
+export async function insertRedditPost(posts: RedditPost | RedditPost[]) {
+  const postsArray = Array.isArray(posts) ? posts : [posts];
   const { data, error } = await supabase
     .from('reddit_posts')
-    .insert(post)
+    .insert(postsArray)
     .select();
   console.log("🚀 ~ insertRedditPost ~ error:", error)
 
