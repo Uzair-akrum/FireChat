@@ -9,6 +9,7 @@ import { generateEmbedding } from '@/lib/ai/embedding';
 import { searchKnowledgeChunks } from '@/lib/db';
 import { ratelimit } from '@/lib/rate-limit';
 import { headers } from 'next/headers';
+import { kv } from "@vercel/kv";
 
 export const maxDuration = 60;
 
@@ -39,16 +40,25 @@ const supabase = createClient(
 
 // Function to fetch Reddit posts data
 async function fetchRedditPosts() {
-  const { data, error } = await supabase
-    .from('reddit_posts')
-    .select('data');
+  try {
+    // Get all Reddit posts from Vercel KV
+    const redditPosts = await kv.get<any[]>('all-reddit-posts');
+    console.log("🚀 ~ fetchRedditPosts ~ redditPosts:", redditPosts)
 
-  if (error) {
-    console.error('Error fetching Reddit posts:', error);
+    if (!redditPosts || !Array.isArray(redditPosts)) {
+      console.log('No Reddit posts found in Vercel KV or invalid format');
+      return null;
+    }
+
+    // Convert to the format expected by the application
+    // The existing code expects an array of objects with a data property
+    return redditPosts.map((post: any) => ({
+      data: post.data || post
+    }));
+  } catch (error) {
+    console.error('Error fetching Reddit posts from Vercel KV:', error);
     return null;
   }
-
-  return data;
 }
 
 export async function POST(request: Request) {
@@ -60,7 +70,6 @@ export async function POST(request: Request) {
   // Check rate limit
   const { success, limit, remaining, reset } = await ratelimit.limit(ip);
 
-  console.log("🚀 ~ POST ~ success:", success, limit, remaining)
   if (!success) {
     return new Response(JSON.stringify({
       error: 'Too many requests',
