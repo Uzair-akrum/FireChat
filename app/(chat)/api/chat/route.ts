@@ -185,6 +185,9 @@ export async function POST(request: Request) {
       );
 
       try {
+        // Log user prompt
+        console.log("User prompt:", lastUserMessage.content);
+
         // Send the last user message content as the current prompt
         const result = await chat.sendMessageStream(lastUserMessage.content);
 
