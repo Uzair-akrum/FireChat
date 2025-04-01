@@ -43,7 +43,6 @@ async function fetchRedditPosts() {
   try {
     // Get all Reddit posts from Vercel KV
     const redditPosts = await kv.get<any[]>('all-reddit-posts');
-    console.log("🚀 ~ fetchRedditPosts ~ redditPosts:", redditPosts)
 
     if (!redditPosts || !Array.isArray(redditPosts)) {
       console.log('No Reddit posts found in Vercel KV or invalid format');
