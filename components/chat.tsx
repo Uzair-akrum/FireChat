@@ -3,20 +3,28 @@
 import { useState } from 'react';
 import type { ChatRequestOptions, CreateMessage } from 'ai';
 import { toast } from 'sonner';
-
 import { ChatHeader } from '@/components/chat-header';
 import { Messages } from './messages';
 import { MultimodalInput } from './multimodal-input';
 import { SuggestedQuestions } from './suggested-questions';
+import { Switch } from './ui/switch';
+import { Label } from './ui/label';
 
-// Define our own Message type that conforms to the expected interface
 interface Message {
   id: string;
   role: 'user' | 'assistant' | 'system' | 'data';
   content: string;
 }
 
-function useCustomChat({ id, selectedModelId }: { id: string; selectedModelId: string }) {
+function useCustomChat({
+  id,
+  selectedModelId,
+  mode
+}: {
+  id: string;
+  selectedModelId: string;
+  mode: 'assistant' | 'portfolio-reviewer';
+}) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -46,6 +54,7 @@ function useCustomChat({ id, selectedModelId }: { id: string; selectedModelId: s
           id,
           messages: [...messages, userMessage],
           modelId: selectedModelId,
+          mode,
           ...chatRequestOptions
         }),
       });
@@ -134,6 +143,7 @@ function useCustomChat({ id, selectedModelId }: { id: string; selectedModelId: s
               id,
               messages: [...messages, message],
               modelId: selectedModelId,
+              mode,
               ...chatRequestOptions
             }),
           });
@@ -223,6 +233,7 @@ function useCustomChat({ id, selectedModelId }: { id: string; selectedModelId: s
               id,
               messages: [...messages, newMessage],
               modelId: selectedModelId,
+              mode,
               ...chatRequestOptions
             }),
           });
@@ -318,6 +329,7 @@ function useCustomChat({ id, selectedModelId }: { id: string; selectedModelId: s
                 id,
                 messages: updatedMessages,
                 modelId: selectedModelId,
+                mode,
                 ...chatRequestOptions
               }),
             });
@@ -398,6 +410,8 @@ export function Chat({
   id: string;
   selectedModelId: string;
 }) {
+  const [mode, setMode] = useState<'assistant' | 'portfolio-reviewer'>('assistant');
+
   const {
     messages,
     setMessages,
@@ -411,6 +425,7 @@ export function Chat({
   } = useCustomChat({
     id,
     selectedModelId,
+    mode,
   });
 
   return (
@@ -435,7 +450,19 @@ export function Chat({
         />
       )}
 
-      <form className="flex mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full md:max-w-3xl" onSubmit={handleSubmit}>
+      <form className="flex flex-col mx-auto px-4 bg-background pb-4 md:pb-6 gap-4 w-full md:max-w-3xl" onSubmit={handleSubmit}>
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="mode-toggle"
+            checked={mode === 'portfolio-reviewer'}
+            onCheckedChange={(checked) => setMode(checked ? 'portfolio-reviewer' : 'assistant')}
+            className="data-[state=checked]:bg-primary"
+          />
+          <Label htmlFor="mode-toggle" className="text-sm text-muted-foreground">
+            {mode === 'assistant' ? 'Assistant' : 'Portfolio Reviewer'}
+          </Label>
+        </div>
+
         <MultimodalInput
           chatId={id}
           input={input}

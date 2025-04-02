@@ -1,7 +1,7 @@
 import { Content, GoogleGenerativeAI } from '@google/generative-ai';
 
 import { models } from '@/lib/ai/models';
-import { regularPrompt } from '@/lib/ai/prompts';
+import { regularPrompt, portfolioReviewerPrompt } from '@/lib/ai/prompts';
 import { getWeather } from '@/lib/ai/tools/get-weather';
 import { generateUUID, getMostRecentUserMessage } from '@/lib/utils';
 import { createClient } from '@supabase/supabase-js';
@@ -43,6 +43,7 @@ async function fetchRedditPosts() {
   try {
     // Get all Reddit posts from Vercel KV
     const redditPosts = await kv.get<any[]>('all-reddit-posts');
+    console.log("🚀 ~ fetchRedditPosts ~ redditPosts:", redditPosts?.length)
 
     if (!redditPosts || !Array.isArray(redditPosts)) {
       console.log('No Reddit posts found in Vercel KV or invalid format');
@@ -90,8 +91,13 @@ export async function POST(request: Request) {
     id,
     messages,
     modelId,
-  }: { id: string; messages: Array<Message>; modelId: string } =
-    await request.json();
+    mode = 'assistant',
+  }: {
+    id: string;
+    messages: Array<Message>;
+    modelId: string;
+    mode?: 'assistant' | 'portfolio-reviewer';
+  } = await request.json();
 
   const model = models.find((model) => model.id === modelId);
 
@@ -125,7 +131,6 @@ export async function POST(request: Request) {
     }
   ];
 
-  // Separate history from the very last message
   const historyMessages = messages.slice(0, -1);
   const lastUserMessage = messages[messages.length - 1];
 
@@ -133,14 +138,13 @@ export async function POST(request: Request) {
     return new Response('Last message is not from user or messages array is empty', { status: 400 });
   }
 
-  // Format only the preceding history
   const formattedHistory = historyMessages.map(msg => ({
     role: msg.role === "user" ? "user" : "model",
     parts: [{ text: msg.content }]
   }));
 
-  // Create system prompt with retrieved knowledge as context
-  let systemPrompt = regularPrompt;
+  let systemPrompt = mode === 'assistant' ? regularPrompt : portfolioReviewerPrompt;
+  console.log("🚀 ~ POST ~ mode:", mode)
   if (redditPosts && redditPosts.length > 0) {
     systemPrompt += "\n\nAdditional context from Reddit posts:\n" +
       JSON.stringify(redditPosts.map(post => post.data));
@@ -151,7 +155,6 @@ export async function POST(request: Request) {
     parts: [{ text: systemPrompt }]
   };
 
-  // Count tokens for the input
   const inputContent = {
     contents: [
       systemInstructionContent,
